@@ -1,0 +1,516 @@
+# openapi.yaml
+openapi: 3.0.3
+info:
+  title: Pledge Management System API
+  description: A comprehensive API for managing pledges, approvals, and transactions
+  version: 1.0.0
+  contact:
+    email: support@pledgemanagement.com
+servers:
+  - url: http://localhost:5000
+    description: Development server
+  - url: https://api.pledgemanagement.com
+    description: Production server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Pledge:
+      type: object
+      properties:
+        id:
+          type: string
+          example: pledge_123
+        account_id:
+          type: string
+          example: account_456
+        amount:
+          type: number
+          format: float
+          example: 1000.00
+        state:
+          type: string
+          enum: [ACTIVE, PENDING, REJECTED, COMPLETED]
+          example: ACTIVE
+        created_at:
+          type: string
+          format: date-time
+          example: 2023-01-01T12:00:00Z
+        updated_at:
+          type: string
+          format: date-time
+          example: 2023-01-02T12:00:00Z
+    
+    PledgeNode:
+      type: object
+      properties:
+        node:
+          $ref: '#/components/schemas/Pledge'
+    
+    PledgeList:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        pledges:
+          type: array
+          items:
+            $ref: '#/components/schemas/PledgeNode'
+        total_count:
+          type: integer
+          example: 50
+        page:
+          type: integer
+          example: 1
+        page_size:
+          type: integer
+          example: 20
+        has_next_page:
+          type: boolean
+          example: true
+    
+    Request:
+      type: object
+      properties:
+        id:
+          type: string
+          example: request_789
+        target_id:
+          type: string
+          example: pledge_123
+        target_type:
+          type: string
+          example: PLEDGE_INCREMENT
+        status:
+          type: string
+          enum: [PENDING_APPROVAL, APPROVED, REJECTED]
+          example: PENDING_APPROVAL
+        created_on:
+          type: string
+          format: date-time
+          example: 2023-01-01T12:00:00Z
+    
+    RequestNode:
+      type: object
+      properties:
+        node:
+          $ref: '#/components/schemas/Request'
+    
+    RequestList:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        requests:
+          type: array
+          items:
+            $ref: '#/components/schemas/RequestNode'
+    
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+          example: account_456
+        name:
+          type: string
+          example: Example Account
+        currency:
+          type: string
+          example: USDC
+        balance:
+          type: number
+          format: float
+          example: 5000.00
+        created_at:
+          type: string
+          format: date-time
+          example: 2023-01-01T12:00:00Z
+    
+    AccountResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        account:
+          $ref: '#/components/schemas/Account'
+    
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: Resource not found
+    
+    PledgeChallenge:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        request_id:
+          type: string
+          example: request_789
+        challenge:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    
+    PledgeApprovalRequest:
+      type: object
+      properties:
+        private_key:
+          type: string
+          format: password
+          example: -----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7VJTUt9Us8cKj\n...\n-----END PRIVATE KEY-----
+    
+    PledgeApprovalResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        pledge_id:
+          type: string
+          example: pledge_123
+        request_id:
+          type: string
+          example: request_789
+        is_approved:
+          type: boolean
+          example: true
+        state:
+          type: string
+          example: ACTIVE
+    
+    WebhookSetupRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          example: https://your-server.com/webhook-receiver
+        events:
+          type: array
+          items:
+            type: string
+          example: [pledge.created, pledge.approved, pledge.rejected]
+    
+    WebhookSetupResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        webhook_id:
+          type: string
+          example: webhook_123
+        secret:
+          type: string
+          example: your_webhook_secret
+    
+    PledgeIncrement:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: 2023-01-01T12:00:00Z
+        request_id:
+          type: string
+          example: request_789
+        pledge_id:
+          type: string
+          example: pledge_123
+        challenge:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    
+    PledgeIncrementList:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        pledge_increments:
+          type: array
+          items:
+            $ref: '#/components/schemas/PledgeIncrement'
+
+security:
+  - bearerAuth: []
+
+paths:
+  /list-all-pledges:
+    get:
+      summary: List all pledges with pagination and filtering
+      description: Returns a paginated list of all pledges with optional filtering
+      operationId: listAllPledges
+      parameters:
+        - name: page
+          in: query
+          description: Page number, starting from 1
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: account_id
+          in: query
+          description: Filter by account ID
+          required: false
+          schema:
+            type: string
+        - name: asset_manager_id
+          in: query
+          description: Filter by asset manager ID
+          required: false
+          schema:
+            type: string
+        - name: exchange_id
+          in: query
+          description: Filter by exchange ID
+          required: false
+          schema:
+            type: string
+        - name: states
+          in: query
+          description: Filter by pledge state(s)
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [ACTIVE, PENDING, REJECTED, COMPLETED]
+            style: form
+            explode: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PledgeList'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  
+  /list-pledges:
+    get:
+      summary: List all pledges (simple)
+      description: Returns a simple list of all pledges without pagination
+      operationId: listPledges
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  pledges:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Pledge'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  
+  /approve-pledge/{pledge_id}:
+    post:
+      summary: Approve a pledge
+      description: Approves a specific pledge using a private key to sign the challenge
+      operationId: approvePledge
+      parameters:
+        - name: pledge_id
+          in: path
+          description: ID of the pledge to approve
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Private key for signing the challenge
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PledgeApprovalRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PledgeApprovalResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Pledge not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  
+  /get-pledge-challenge/{pledge_id}:
+    get:
+      summary: Get pledge challenge
+      description: Retrieves the challenge needed for approving a specific pledge
+      operationId: getPledgeChallenge
+      parameters:
+        - name: pledge_id
+          in: path
+          description: ID of the pledge
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PledgeChallenge'
+        '404':
+          description: Pledge not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  
+  /list-pending-requests:
+    get:
+      summary: List pending requests
+      description: Returns a list of pending requests that require approval
+      operationId: listPendingRequests
+      parameters:
+        - name: target_type
+          in: query
+          description: Type of target
+          required: false
+          schema:
+            type: string
+            default: PLEDGE_INCREMENT
+        - name: status
+          in: query
+          description: Status of requests
+          required: false
+          schema:
+            type: string
+            default: PENDING_APPROVAL
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestList'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  
+  /account/{account_id}:
+    get:
+      summary: Get account details
+      description: Retrieves details for a specific account
+      operationId: getAccount
+      parameters:
+        - name: account_id
+          in: path
+          description: ID of the account
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  
+  /setup-webhook:
+    post:
+      summary: Setup webhook
+      description: Configures a webhook for receiving notifications about pledge events
+      operationId: setupWebhook
+      requestBody:
+        description: Webhook configuration
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookSetupRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookSetupResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  
+  /view-pledge-increments:
+    get:
+      summary: View pledge increments
+      description: Returns a list of pledge increments received via webhooks
+      operationId: viewPledgeIncrements
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PledgeIncrementList'

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Authentication Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>API Authentication Test</h1>
+        
+        <div>
+            <button id="testAuthBtn">Test Authentication</button>
+        </div>
+        
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.getElementById('testAuthBtn').addEventListener('click', testAuthentication);
+        
+        async function testAuthentication() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result';
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Testing authentication...';
+            
+            try {
+                // First try with credentials
+                const response = await fetch('http://127.0.0.1:8000/authenticate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>Authentication Successful!</h3>
+                        <p>Status: ${response.status} ${response.statusText}</p>
+                        <p>Response:</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    
+                    // Store the token if it was returned
+                    if (data.token) {
+                        localStorage.setItem('authToken', data.token);
+                        resultDiv.innerHTML += `<p>Token has been saved to localStorage.</p>`;
+                    }
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>Authentication Failed</h3>
+                        <p>Status: ${response.status} ${response.statusText}</p>
+                        <p>Response:</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>Connection Error</h3>
+                    <p>${error.message}</p>
+                    <p>This could be due to:</p>
+                    <ul>
+                        <li>The API server is not running</li>
+                        <li>CORS is blocking the request</li>
+                        <li>The authentication endpoint is different</li>
+                        <li>Network connectivity issues</li>
+                    </ul>
+                    <p>Check the browser console for more details.</p>
+                `;
+                console.error('Authentication test error:', error);
+                
+                // Try with no-cors mode to check if the server is reachable
+                resultDiv.innerHTML += `<p>Attempting to check if server is reachable...</p>`;
+                
+                try {
+                    const pingResponse = await fetch('http://localhost:5000/', {
+                        mode: 'no-cors'
+                    });
+                    resultDiv.innerHTML += `<p>Server appears to be reachable, but CORS might be blocking the request.</p>`;
+                } catch (pingError) {
+                    resultDiv.innerHTML += `<p>Server does not appear to be reachable at http://localhost:5000/</p>`;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
