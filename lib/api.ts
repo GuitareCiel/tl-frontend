@@ -137,12 +137,28 @@ import {
 
   // Define proper interfaces for your API functions
   interface FeeEstimationPayload {
-    account_id: string;
-    account_name: string;
-    amount: string;
-    recipient: string;
-    currency: string;
-    [key: string]: unknown;
+    data: {
+      account_id: string;
+      fees_strategy: {
+        data: {
+          speed: string;
+        };
+        type: string;
+      };
+      transaction_data: {
+        account_name: string;
+        amount: string;
+        max_fees: string;
+        recipient: string;
+        currency: string;
+      };
+      transaction_type: string;
+    };
+    note: {
+      content: string;
+      title: string;
+    };
+    type: string;
   }
 
   export async function estimateTransactionFees(

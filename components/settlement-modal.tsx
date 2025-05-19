@@ -167,7 +167,7 @@ export function SettlementModal({ isOpen, onClose }: SettlementModalProps) {
       console.log("feeEstimationPayload");
       console.log(feeEstimationPayload);
       const feeEstimation = await estimateTransactionFees(feeEstimationPayload)
-      
+      console.log(feeEstimation);
       if (!feeEstimation.success) {
         toast.error('Failed to estimate transaction fees', {
           description: feeEstimation.error || 'Unknown error'
