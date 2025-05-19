@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { ApprovalModal } from '@/components/approval-modal';
 import { getPendingRequests, getPledgeChallenge } from '@/lib/api';
-import { RequestList, DecodedChallenge } from '@/types';
+import { RequestList, DecodedChallenge, Request } from '@/types';
 import { formatDate } from '@/lib/utils';
 
 export function PendingIncrements({ onRefresh }: { onRefresh: () => void }) {
@@ -132,7 +132,7 @@ export function PendingIncrements({ onRefresh }: { onRefresh: () => void }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pledgeRequests.map((request: any, index: number) => (
+                {pledgeRequests.map((request: Request, index: number) => (
                   <TableRow key={index}>
                     <TableCell className="font-mono text-sm">
                       {request.target_id || request.pledge_id || 'N/A'}
@@ -183,14 +183,14 @@ export function PendingIncrements({ onRefresh }: { onRefresh: () => void }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {settlementRequests.map((request: any, index: number) => (
+                {settlementRequests.map((request: Request, index: number) => (
                   <TableRow key={index}>
                     <TableCell className="font-mono text-sm">
                       {request.target_id || 'N/A'}
                     </TableCell>
                     <TableCell className="font-mono text-sm">{request.id || 'N/A'}</TableCell>
                     <TableCell>{request.status || 'Unknown'}</TableCell>
-                    <TableCell>{formatDate(request.created_on)}</TableCell>
+                    <TableCell>{request.created_on ? formatDate(request.created_on) : 'N/A'}</TableCell>
                     <TableCell>
                       <Button 
                         onClick={() => handleOpenApprovalModal(

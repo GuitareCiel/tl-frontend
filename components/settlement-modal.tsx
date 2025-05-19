@@ -17,6 +17,26 @@ interface SettlementModalProps {
   onClose: () => void
 }
 
+interface SettlementData {
+  id: string;
+  from_pledge_id?: string;
+  meta: Record<string, unknown>;
+  outbound_transaction_intent?: {
+    account_id: string;
+    transaction_data: {
+      amount: string;
+      recipient: string;
+      currency: string;
+      [key: string]: any;
+    };
+    [key: string]: any;
+  };
+  inbound_transaction_intent?: {
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
 export function SettlementModal({ isOpen, onClose }: SettlementModalProps) {
   // State for outbound settlement
   const [pledgeId, setPledgeId] = useState<string>('')
@@ -33,7 +53,7 @@ export function SettlementModal({ isOpen, onClose }: SettlementModalProps) {
   // State for confirmation
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [confirmationType, setConfirmationType] = useState<'inbound' | 'outbound'>('outbound')
-  const [settlementData, setSettlementData] = useState<any>(null)
+  const [settlementData, setSettlementData] = useState<SettlementData | null>(null)
   const [settlementId, setSettlementId] = useState<string>('')
   
   // Reset form when modal opens
@@ -66,28 +86,13 @@ export function SettlementModal({ isOpen, onClose }: SettlementModalProps) {
     currency: string
   ) => {
     return {
-      data: {
-        account_id: accountId,
-        fees_strategy: {
-          data: {
-            speed: "FAST"
-          },
-          type: "SPEED"
-        },
-        transaction_data: {
-          account_name: accountName,
-          amount: amount,
-          currency: currency,
-          max_fees: "0",
-          recipient: recipient
-        },
-        transaction_type: "ETHEREUM_LIKE_SEND"
-      },
-      note: {
-        content: "null",
-        title: "null"
-      },
-      type: "CREATE_TRANSACTION"
+      account_id: accountId,
+      account_name: accountName,
+      amount: amount,
+      recipient: recipient,
+      currency: currency,
+      transaction_type: "ETHEREUM_LIKE_SEND",
+      speed: "FAST"
     };
   };
   
@@ -255,17 +260,25 @@ export function SettlementModal({ isOpen, onClose }: SettlementModalProps) {
         return
       }
       
-      const maxFees = feeEstimation.estimated_fees || "0"
+      const maxFees = feeEstimation.fee_estimation?.max_fees || "0"
       
       // Prepare settlement data with the correct structure
       const settlementPayload = {
-        settlement_id: newSettlementId,
-        pledge_id: pledgeId,
+        id: newSettlementId,
+        from_pledge_id: pledgeId,
         to_account_id: toAccount,
-        amount: amountInWei,
-        recipient_address: toAddress,
-        max_fees: maxFees,
-        currency: pledgeResponse.pledge.currency || "ethereum_holesky"
+        meta: {},
+        inbound_transaction_intent: {
+          account_id: toAccount,
+          transaction_data: {
+            account_name: accountName,
+            amount: amountInWei,
+            currency: pledgeResponse.pledge.currency || "ethereum_holesky",
+            max_fees: maxFees,
+            recipient: toAddress
+          },
+          transaction_type: "ETHEREUM_LIKE_SEND"
+        }
       }
       
       setSettlementData(settlementPayload)
@@ -437,7 +450,7 @@ export function SettlementModal({ isOpen, onClose }: SettlementModalProps) {
           </>
         ) : (
           <SettlementConfirmation
-            data={settlementData}
+            data={settlementData as SettlementData}
             type={confirmationType}
             onConfirm={handleCreateSettlement}
             onBack={() => setShowConfirmation(false)}

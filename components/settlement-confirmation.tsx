@@ -3,12 +3,33 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
+// Define a proper type for the data prop
+interface SettlementData {
+  id: string;
+  from_pledge_id?: string;
+  meta: Record<string, unknown>;
+  outbound_transaction_intent?: {
+    account_id: string;
+    transaction_data: {
+      amount: string;
+      recipient: string;
+      currency: string;
+      [key: string]: any;
+    };
+    [key: string]: any;
+  };
+  inbound_transaction_intent?: {
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
 interface SettlementConfirmationProps {
-  data: any
-  onConfirm: () => void
-  onBack: () => void
-  type: 'inbound' | 'outbound'
-  isSubmitting?: boolean
+  data: SettlementData;
+  onConfirm: () => void;
+  onBack: () => void;
+  type: 'inbound' | 'outbound';
+  isSubmitting?: boolean;
 }
 
 export function SettlementConfirmation({ 
@@ -41,7 +62,7 @@ export function SettlementConfirmation({
           Back
         </Button>
         <Button onClick={onConfirm} disabled={isSubmitting}>
-          {isSubmitting ? 'Creating Settlement...' : 'Confirm Settlement'}
+          {isSubmitting ? 'Creating Settlement...' : 'Create Settlement'}
         </Button>
       </div>
     </div>

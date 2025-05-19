@@ -1,10 +1,10 @@
 // components/pledge-table.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { getAllPledges, getAccount } from '@/lib/api';
-import { formatAmount, getStatusColor, formatCurrencyAmount } from '@/lib/utils';
+import { getStatusColor, formatCurrencyAmount } from '@/lib/utils';
 import { PledgeList, AccountResponse } from '@/types';
 import { PledgeTableSkeleton } from '@/components/pledge-table-skeleton';
 import { CopyButton } from '@/components/copy-button';
@@ -15,7 +15,7 @@ export function PledgeTable() {
   const [error, setError] = useState<string | null>(null);
   const [accountCache, setAccountCache] = useState<Record<string, AccountResponse>>({});
 
-  const fetchPledges = async () => {
+  const fetchPledges = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     
@@ -58,11 +58,11 @@ export function PledgeTable() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [accountCache]);
 
   useEffect(() => {
     fetchPledges();
-  }, []);
+  }, [fetchPledges]);
 
   const getCurrency = (accountId: string): string => {
     if (accountCache[accountId]?.success) {

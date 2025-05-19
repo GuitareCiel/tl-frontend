@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { PendingIncrements } from '@/components/pending-increments';
 import { PledgeTable } from '@/components/pledge-table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Dashboard() {
   const [refreshKey, setRefreshKey] = useState(0);

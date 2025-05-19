@@ -130,12 +130,35 @@ import {
     return fetchApi<any>(`/pledge/${pledgeId}`);
   }
 
-  export async function estimateTransactionFees(data: any): Promise<any> {
-    return fetchApi<any>('/estimate-fees', {
+  // Define proper interfaces for your API functions
+  interface FeeEstimationPayload {
+    account_id: string;
+    account_name: string;
+    amount: string;
+    recipient: string;
+    currency: string;
+    [key: string]: unknown;
+  }
+
+  export async function estimateTransactionFees(
+    data: FeeEstimationPayload
+  ): Promise<{
+    success: boolean;
+    fee_estimation?: {
+      max_fees: string;
+      [key: string]: unknown;
+    };
+    error?: string;
+  }> {
+    return fetchApi<{
+      success: boolean;
+      fee_estimation?: {
+        max_fees: string;
+        [key: string]: unknown;
+      };
+      error?: string;
+    }>('/estimate-transaction-fees', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(data),
     });
   }

@@ -65,3 +65,14 @@ export function formatCurrencyAmount(amount: string | number, currency: string):
       return formatAmount(numericAmount);
   }
 }
+
+// Remove unused parameters or use them
+export function someFunction(param1: string, param2: string) {
+  // Use param1 and param2 or remove them
+  return param1 + param2;
+}
+
+// Or use the underscore prefix for intentionally unused variables
+export function handleError(_error: Error) {
+  // Implementation that doesn't use the error parameter
+}
