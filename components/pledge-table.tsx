@@ -42,15 +42,19 @@ export function PledgeTable() {
           });
         
         const accountResults = await Promise.all(accountPromises);
-        const newCache = { ...accountCache };
         
-        accountResults.forEach(result => {
-          if (result.data) {
-            newCache[result.id] = result.data;
-          }
+        // Use a function to update state based on previous state
+        setAccountCache(prevCache => {
+          const newCache = { ...prevCache };
+          
+          accountResults.forEach(result => {
+            if (result.data) {
+              newCache[result.id] = result.data;
+            }
+          });
+          
+          return newCache;
         });
-        
-        setAccountCache(newCache);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch pledges');
@@ -58,11 +62,11 @@ export function PledgeTable() {
     } finally {
       setIsLoading(false);
     }
-  }, [accountCache]);
+  }, []);
 
   useEffect(() => {
     fetchPledges();
-  }, [fetchPledges]);
+  }, []);
 
   const getCurrency = (accountId: string): string => {
     if (accountCache[accountId]?.success) {
