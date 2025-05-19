@@ -100,10 +100,23 @@ export function ApprovalModal({
         });
       }
     } catch (error) {
-      setResult({
-        success: false,
-        message: `Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`
-      });
+      // More specific error handling
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        setResult({
+          success: false,
+          message: 'Network error: Please check your connection and try again'
+        });
+      } else if (error instanceof Error && error.message.includes('401')) {
+        setResult({
+          success: false,
+          message: 'Authentication error: Your session may have expired'
+        });
+      } else {
+        setResult({
+          success: false,
+          message: `Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
