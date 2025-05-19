@@ -25,6 +25,7 @@ import {
     };
     
     try {
+      console.log(`Fetching API: ${url}`);
       const response = await fetch(url, {
         ...options,
         headers,
@@ -40,6 +41,10 @@ import {
       return response.json();
     } catch (error) {
       console.error(`API Error (${endpoint}):`, error);
+      // Add more detailed error information
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new Error(`Network error: Could not connect to ${endpoint}. Please check your API server is running.`);
+      }
       throw error;
     }
   }
@@ -157,7 +162,7 @@ import {
         [key: string]: unknown;
       };
       error?: string;
-    }>('/estimate-transaction-fees', {
+    }>('/estimate-fees', {
       method: 'POST',
       body: JSON.stringify(data),
     });

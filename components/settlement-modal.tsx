@@ -86,15 +86,30 @@ export function SettlementModal({ isOpen, onClose }: SettlementModalProps) {
     currency: string
   ) => {
     return {
-      account_id: accountId,
-      account_name: accountName,
-      amount: amount,
-      recipient: recipient,
-      currency: currency,
-      transaction_type: "ETHEREUM_LIKE_SEND",
-      speed: "FAST"
+        data: {
+            account_id: accountId,
+            fees_strategy: {
+            data: {
+                speed: "FAST"
+            },
+            type: "SPEED"
+            },
+            transaction_data: {
+            account_name: accountName,
+            amount: amount,
+            max_fees:"0",
+            recipient: recipient,
+            currency: currency
+    },
+        transaction_type: "ETHEREUM_LIKE_SEND"
+        },
+        note: {
+            content: "null",
+          title: "null"
+      },
+      type: "CREATE_TRANSACTION"
     };
-  };
+};
   
   // Update the prepareOutboundSettlement function
   const prepareOutboundSettlement = async () => {
@@ -149,7 +164,8 @@ export function SettlementModal({ isOpen, onClose }: SettlementModalProps) {
         recipientAddress,
         pledge.currency || "ethereum"
       )
-      
+      console.log("feeEstimationPayload");
+      console.log(feeEstimationPayload);
       const feeEstimation = await estimateTransactionFees(feeEstimationPayload)
       
       if (!feeEstimation.success) {
@@ -186,7 +202,8 @@ export function SettlementModal({ isOpen, onClose }: SettlementModalProps) {
           transaction_type: "ETHEREUM_LIKE_SEND"
         }
       }
-      
+      console.log("settlementPayload");
+      console.log(settlementPayload);
       setSettlementData(settlementPayload)
       setConfirmationType('outbound')
       setShowConfirmation(true)
