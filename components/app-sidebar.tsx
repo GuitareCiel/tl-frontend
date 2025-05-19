@@ -39,7 +39,7 @@ export function AppSidebar() {
 
   return (
     <>
-      <Sidebar collapsible="none" className="h-screen">
+      <Sidebar collapsible="none" className="h-full min-h-screen fixed">
         <SidebarHeader>
           <h2 className="text-lg font-semibold px-4">Tradelink BO</h2>
         </SidebarHeader>
