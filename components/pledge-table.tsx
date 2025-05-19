@@ -8,12 +8,14 @@ import { getStatusColor, formatCurrencyAmount } from '@/lib/utils';
 import { PledgeList, AccountResponse } from '@/types';
 import { PledgeTableSkeleton } from '@/components/pledge-table-skeleton';
 import { CopyButton } from '@/components/copy-button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function PledgeTable() {
   const [isLoading, setIsLoading] = useState(true);
   const [pledges, setPledges] = useState<PledgeList | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [accountCache, setAccountCache] = useState<Record<string, AccountResponse>>({});
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
 
   const fetchPledges = useCallback(async () => {
     setIsLoading(true);
@@ -22,9 +24,12 @@ export function PledgeTable() {
     try {
       const data = await getAllPledges();
       setPledges(data);
+      setIsLoading(false); // Set loading to false as soon as we have pledge data
       
-      // Pre-fetch account data for all pledges
+      // Now fetch account data in the background
       if (data.success && data.pledges) {
+        setIsLoadingAccounts(true);
+        
         const accountPromises = data.pledges
           .filter(pledgeItem => {
             const pledge = pledgeItem.node;
@@ -55,18 +60,19 @@ export function PledgeTable() {
           
           return newCache;
         });
+        
+        setIsLoadingAccounts(false);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch pledges');
       setPledges(null);
-    } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
     fetchPledges();
-  }, []);
+  }, [fetchPledges]);
 
   const getCurrency = (accountId: string): string => {
     if (accountCache[accountId]?.success) {
@@ -80,6 +86,10 @@ export function PledgeTable() {
       return accountCache[accountId].account.name || `Account ${accountId}`;
     }
     return `Account ${accountId}`; // Default
+  };
+
+  const isAccountLoaded = (accountId: string): boolean => {
+    return accountCache[accountId] !== undefined;
   };
 
   return (
@@ -109,8 +119,8 @@ export function PledgeTable() {
             <TableBody>
               {pledges.pledges.map((pledgeItem, index) => {
                 const pledge = pledgeItem.node;
+                const accountLoaded = isAccountLoaded(pledge.account_id);
                 const currency = getCurrency(pledge.account_id);
-                const accountName = getAccountName(pledge.account_id);
                 
                 return (
                   <TableRow key={index}>
@@ -122,12 +132,26 @@ export function PledgeTable() {
                       {pledge.account_id || 'N/A'}
                     </TableCell>
                     <TableCell>
-                      {accountName}
+                      {isLoadingAccounts && !accountLoaded ? (
+                        <Skeleton className="h-5 w-24" />
+                      ) : (
+                        getAccountName(pledge.account_id)
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
-                      {formatCurrencyAmount(pledge.amount || 0, currency)}
+                      {isLoadingAccounts && !accountLoaded ? (
+                        <Skeleton className="h-5 w-16 ml-auto" />
+                      ) : (
+                        formatCurrencyAmount(pledge.amount || 0, currency)
+                      )}
                     </TableCell>
-                    <TableCell>{currency}</TableCell>
+                    <TableCell>
+                      {isLoadingAccounts && !accountLoaded ? (
+                        <Skeleton className="h-5 w-12" />
+                      ) : (
+                        currency
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Badge 
                         className={`${getStatusColor(pledge.state)} text-white`}
